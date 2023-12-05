@@ -21,14 +21,21 @@ const App = () => {
     });
   };
 
-  const handleButtonClick = () => {
-    setTasks((currentValue) => {
-      currentValue.push(currentTask);
-      return currentValue;
-    });
-    setCurrentTask("");
-  };
+  // const handleButtonClick = () => {
+  //   setTasks((currentValue) => {
+  //     currentValue.push(currentTask);
+  //     return currentValue;
+  //   });
+  //   setCurrentTask("");
+  // };
 
+  const sendRequestToServer = async ()=>{
+   const request = await fetch("http://localhost:3000/thing",{
+    method:"GET"
+   })
+   const data = await request.json()
+   console.log(data);
+  }
   // JSX Content
   return (
     <main className="text-center">
@@ -44,7 +51,7 @@ const App = () => {
           className="p-6 w-[70%] border border-gray-800"
         />
         <button
-          onClick={handleButtonClick}
+          onClick={sendRequestToServer}
           className="bg-gray-700 text-white p-3 rounded-md ml-6"
         >
           Add
