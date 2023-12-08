@@ -1,41 +1,73 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TodoItem from "./TodoItem";
 
 const App = () => {
   // States
   const [currentTask, setCurrentTask] = useState("");
   const [tasks, setTasks] = useState([]);
+  const [ids, setIds] = useState([]);
+  const [reRender, setRerender] = useState(0);
+
+  //UseEffect 2. 1-> Callback function , 2->  Dependency Array
+  useEffect(() => {
+    fetch("/api")
+      .then((data) => {
+        data
+          .json()
+          .then((jsonData) => {
+            const refactoredList = jsonData.map((e) => {
+              return e.todoItem;
+            });
+            const refactoredIds = jsonData.map((e) => {
+              return e._id;
+            });
+            setIds(refactoredIds);
+            setTasks(refactoredList);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [reRender]);
 
   // Callback Functions
-  const removeTaskWithIndex = (index) => {
-    setTasks((currentValue) => {
-      //Remove one element from the array
-      const updatedArray = currentValue.filter((e, i) => {
-        if (i === index) {
-          return false;
-        }
-        return true;
+  const removeTaskWithIndex = async (index) => {
+    try {
+      const req = await fetch(`/api/${ids[index]}`, {
+        method: "DELETE",
       });
-
-      return updatedArray;
-    });
+      if (req.ok) {
+        setRerender(reRender + 1);
+      }else{
+        console.log("Error");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  // const handleButtonClick = () => {
-  //   setTasks((currentValue) => {
-  //     currentValue.push(currentTask);
-  //     return currentValue;
-  //   });
-  //   setCurrentTask("");
-  // };
+  const handleButtonClick = async () => {
+    const request = await fetch("/api", {
+      method: "POST",
+      body: JSON.stringify({
+        todo: currentTask,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    setCurrentTask("");
+    if (request.ok) {
+      console.log("success");
+      setRerender(reRender + 1);
+    } else {
+      console.log("Error");
+    }
+  };
 
-  const sendRequestToServer = async ()=>{
-   const request = await fetch("http://localhost:3000/thing",{
-    method:"GET"
-   })
-   const data = await request.json()
-   console.log(data);
-  }
   // JSX Content
   return (
     <main className="text-center">
@@ -51,7 +83,7 @@ const App = () => {
           className="p-6 w-[70%] border border-gray-800"
         />
         <button
-          onClick={sendRequestToServer}
+          onClick={handleButtonClick}
           className="bg-gray-700 text-white p-3 rounded-md ml-6"
         >
           Add
