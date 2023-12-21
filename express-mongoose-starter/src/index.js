@@ -1,40 +1,46 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { studentModel } from "./schema.js";
+import express from "express";
 dotenv.config();
 
 const url = process.env.DB_URI;
 
-async function main() {
+const app = express();
+
+app.use(express.json());
+
+async function connectToDb() {
   try {
-    // connect to our database
     await mongoose.connect(url);
     console.log("Successfully connected");
-    // create our new student
-    //CREATE
-    //     const myNewStudent = new studentModel({
-    //       name: "anas",
-    //       reg: 1234567,
-    //     });
-
-    //     // save it in database
-    //   const doc =await  myNewStudent.save()
-    // READ
-    // const data = await studentModel.findOne({name:"anas"})
-    // console.log(data);
-
-    //UPDATE
-    // await studentModel.updateOne({ name: "vidyavasini" }, { $set: { reg: 2020 } });
-
-    // const currentStudent = await studentModel.findOne({ reg: 20255 });
-    // currentStudent.name = "asldkfjas;ldkjf";
-    // await currentStudent.save();
-    // Delete
-    // const result = await studentModel.deleteOne({ name: "anas" });
-    // console.log(result);
   } catch (error) {
     console.log(error);
   }
 }
+connectToDb();
 
-main();
+app.get("/", async (req, res) => {
+  const students = await studentModel.find();
+  res.json(students);
+});
+
+app.post("/", async (req, res) => {
+  const name = req.body.name;
+  const reg = req.body.reg;
+  if (name && reg) {
+    const students = new studentModel({
+      name,
+      reg,
+    });
+    await students.save();
+    res.sendStatus(201);
+  } else {
+    res.sendStatus(400);
+  }
+});
+
+app.listen(8080, () => {
+  console.log("Server running on port 8080");
+});
+// C R U D -> POST , GET , PUT , DELETE
